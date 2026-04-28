@@ -54,6 +54,48 @@ go test -v ./lessons/16-testing/
 | 16 | `B.Loop`, `T.Context`, synctest | **1.24+** |
 | 17 | weak, os.Root, Swiss Tables, GC | **1.24-1.26** |
 
+## Standard Library Examples
+
+โค้ดตัวอย่างแยก topic ละไฟล์ รันได้ทันที:
+
+```bash
+go run ./examples/slog/
+go run ./examples/encoding-json/
+go run ./examples/slices-maps/
+go run ./examples/strings-bytes/
+go run ./examples/context/
+go run ./examples/sync/
+go run ./examples/time/
+go run ./examples/crypto/
+go run ./examples/iter/
+go run ./examples/os/
+go run ./examples/unique/
+go run ./examples/regexp/
+go run ./examples/encoding-xml/
+go run ./examples/testing/
+go run ./examples/net-http/
+go run ./examples/database-sql/
+```
+
+| Directory | สอนเรื่อง | Java Equivalent |
+|---|---|---|
+| `slog/` | Structured logging (Text, JSON, Groups, MultiHandler) | SLF4J + Logback |
+| `encoding-json/` | Marshal, Unmarshal, omitzero, RawMessage, custom JSON | Jackson ObjectMapper |
+| `slices-maps/` | Sort, Contains, Insert, Delete, BinarySearch, Concat | Stream API, Collections |
+| `strings-bytes/` | Split, Join, Builder, iterators (1.24+) | String utilities |
+| `context/` | WithTimeout, WithCancel, WithValue, Deadline | ThreadLocal / RequestScope |
+| `sync/` | Mutex, WaitGroup.Go, Once, Cond, Pool, Map | synchronized, CountDownLatch, ConcurrentHashMap |
+| `time/` | Format, Parse, Duration, Timer, Ticker, AfterFunc | java.time, ScheduledExecutor |
+| `crypto/` | crypto/rand, sha256, HKDF (1.24+) | java.security, javax.crypto |
+| `iter/` | Backward, Filter, Map, Take, BinaryTree iterator | Stream API |
+| `os/` | ReadFile, WriteFile, MkdirAll, env, Args, os.Root | java.nio.file |
+| `unique/` | Interning / canonicalization (1.23+) | String.intern() / ConcurrentHashMap cache |
+| `regexp/` | Compile, Find, groups, Replace, Split | java.util.regex |
+| `encoding-xml/` | Marshal, Unmarshal, XML tags, Encoder, CDATA | JAXB |
+| `testing/` | Table-driven, error testing, benchmark, B.Loop (1.24) | JUnit 5 |
+| `net-http/` | Server routes + client, path params, headers | Spring MVC + RestTemplate |
+| `database-sql/` | CRUD, transactions, prepared stmt, connection pool (pure-Go SQLite) | JdbcTemplate + HikariCP |
+
 ## Prerequisites
 
 - Go 1.26+ (`go.dev/dl`)
