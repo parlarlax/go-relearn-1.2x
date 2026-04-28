@@ -2,31 +2,62 @@ package order
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"github.com/lax/go-relearn/lessons/12-project-layout/examples/domain-driven/internal/store"
 )
 
-type Order struct {
-	ID     int    `json:"id"`
-	UserID int    `json:"user_id"`
-	Item   string `json:"item"`
-}
-
-func New(userID int, item string) *Order {
-	return &Order{UserID: userID, Item: item}
-}
-
 type Handler struct {
-	orders []*Order
-	nextID int
+	svc *Service
 }
 
-func NewHandler() *Handler {
-	return &Handler{nextID: 1}
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /orders", h.list)
+	mux.HandleFunc("GET /users/{id}/orders", h.listByUser)
 	mux.HandleFunc("POST /orders", h.create)
+}
+
+func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
+	orders, err := h.svc.List()
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, orders)
+}
+
+func (h *Handler) listByUser(w http.ResponseWriter, r *http.Request) {
+	var userID int
+	fmt.Sscanf(r.PathValue("id"), "%d", &userID)
+	orders, err := h.svc.ListByUser(userID)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, orders)
+}
+
+func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		UserID int    `json:"user_id"`
+		Item   string `json:"item"`
+		Qty    int    `json:"qty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		writeErr(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+	o, err := h.svc.Create(input.UserID, input.Item, input.Qty)
+	if err != nil {
+		writeErr(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, o)
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -35,22 +66,6 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	json.NewEncoder(w).Encode(v)
 }
 
-func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, h.orders)
-}
-
-func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		UserID int    `json:"user_id"`
-		Item   string `json:"item"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.Item == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "item required"})
-		return
-	}
-	o := New(input.UserID, input.Item)
-	o.ID = h.nextID
-	h.nextID++
-	h.orders = append(h.orders, o)
-	writeJSON(w, http.StatusCreated, o)
+func writeErr(w http.ResponseWriter, status int, msg string) {
+	writeJSON(w, status, &store.APIError{Status: status, Message: msg})
 }

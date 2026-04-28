@@ -145,17 +145,55 @@ go tool cover -html=cover.out # เปิด coverage report ใน browser
 
 ทั้ง 3 แบบทำงานเหมือนกัน (CRUD API) แต่จัดโครงสร้างต่างกัน — ดูโค้ดตัวอย่างได้ใน `examples/`
 
-### แบบที่ 1: Flat (ไฟล์เดียวหรือไม่กี่ไฟล์)
+### แบบที่ 1: Flat (ไฟล์เดียว — ทุกอย่างอยู่ด้วยกัน)
 
 ```
 myapp/
   go.mod
-  main.go          ← ทุกอย่างอยู่ในไฟล์เดียว: handler, store, middleware
+  main.go          ← interface, store, service, handler, middleware, server — ทั้งหมดในไฟล์เดียว
 ```
 
 ```java
 // Java เทียบ: โยนทุกอย่างใน @RestController เดียว (Spring Boot pet project)
 ```
+
+#### สิ่งที่อยู่ในไฟล์เดียว (แต่แยก section ชัดเจน):
+
+```go
+// 1. Models
+type User struct { ... }
+type Order struct { ... }
+
+// 2. Store interfaces — สามารถ swap เป็น postgres ได้
+type UserStore interface { ... }
+
+// 3. Store implementation (in-memory)
+type MemoryUserStore struct { ... }
+
+// 4. Business logic (validation)
+type UserService struct { store UserStore }
+func NewUserService(store UserStore) *UserService { ... }
+
+// 5. HTTP handlers
+func registerUserRoutes(mux *http.ServeMux, svc *UserService) { ... }
+
+// 6. Middleware
+func loggingMiddleware(next http.Handler) http.Handler { ... }
+func recoveryMiddleware(next http.Handler) http.Handler { ... }
+
+// 7. Wiring + graceful shutdown
+func main() {
+    var userStore UserStore = NewMemoryUserStore()      // DI
+    userSvc := NewUserService(userStore)                 // DI
+    mux := http.NewServeMux()
+    registerUserRoutes(mux, userSvc)                     // routes
+    handler := chainMiddleware(mux, loggingMiddleware, recoveryMiddleware) // middleware
+    // ... graceful shutdown
+}
+```
+
+> **สังเกต:** logic เหมือน domain-driven และ layered ทุกอย่าง — แค่ไม่แยกไฟล์
+> interface + DI + validation + middleware + graceful shutdown มีครบเหมือนกัน
 
 | | |
 |---|---|
@@ -166,21 +204,26 @@ myapp/
 
 > **ตัวอย่าง:** `examples/flat/main.go`
 
-### แบบที่ 2: Domain-Driven (แบ่งตาม feature/domain)
+### แบบที่ 2: Domain-Driven (แบ่งตาม feature/domain) — แนะนำ!
 
 ```
 myapp/
   go.mod
-  main.go              ← wiring (เชื่อมทุก domain เข้าด้วยกัน)
+  main.go                        ← wiring: สร้าง deps, เชื่อมทุกอย่างเข้าด้วยกัน
   user/
-    user.go            ← struct + constructor
-    handler.go         ← HTTP handler (เรียก store ตรงๆ)
+    service.go                   ← business logic (รับ interface ไม่ใช่ concrete)
+    handler.go                   ← HTTP handler (รับ Service)
   order/
-    order.go
-    handler.go
+    service.go                   ← business logic (รับ UserStore + OrderStore)
+    handler.go                   ← HTTP handler
   internal/
-    db/
-      store.go         ← generic store (ใช้ร่วมกัน)
+    config/
+      config.go                  ← อ่าน config จาก env vars
+    server/
+      server.go                  ← HTTP server wrapper + graceful shutdown
+    store/
+      model.go                   ← struct definitions + interfaces
+      memory.go                  ← in-memory implementation (swap เป็น SQL ได้)
 ```
 
 ```java
@@ -189,12 +232,113 @@ myapp/
 //   com.example.order/   → OrderController, OrderService, OrderRepository
 ```
 
+#### Real-World Patterns ที่ใช้ในตัวอย่างนี้:
+
+**1. Dependency Injection — Go vs Spring**
+
+```java
+// Spring Boot — framework ทำให้ (magic!)
+@Service
+public class UserService {
+    @Autowired                    // ← framework inject ให้อัตโนมัติ
+    private UserRepository repo;
+}
+```
+
+```go
+// Go — constructor injection (manual, explicit)
+type Service struct {
+    users store.UserStore         // ← รับ interface ไม่ใช่ concrete type
+}
+
+func NewService(users store.UserStore) *Service {
+    return &Service{users: users} // ← inject ด้วยมือตอนสร้าง
+}
+```
+
+> **Go DI = explicit** — ไม่มี `@Autowired`, ไม่มี magic, ทุก dependency ปรากฏใน function signature หมด
+
+**2. Interface-Based Store — เปลี่ยน implementation ได้ไม่ต้องแก้ code**
+
+```go
+// store/model.go — นิยาม interface
+type UserStore interface {
+    Create(name, email string) (*User, error)
+    GetByID(id int) (*User, error)
+    List() ([]*User, error)
+    Update(id int, name, email string) (*User, error)
+    Delete(id int) error
+}
+
+// store/memory.go — implement ด้วย map (สำหรับ dev/test)
+// store/postgres.go — implement ด้วย database/sql (สำหรับ production)
+```
+
+```java
+// Java เทียบ: interface + @Repository + @Autowired
+//   แต่ Go ไม่ต้องมี annotation หรือ IoC container
+```
+
+**3. main.go as Wiring — เหมือน Spring AppConfig**
+
+```go
+func main() {
+    cfg := config.Load()                                    // 1. อ่าน config
+
+    var userStore store.UserStore = store.NewMemoryUserStore()  // 2. สร้าง deps
+    var orderStore store.OrderStore = store.NewMemoryOrderStore()
+
+    userSvc := user.NewService(userStore)                       // 3. inject deps
+    userHandler := user.NewHandler(userSvc)
+
+    orderSvc := order.NewService(orderStore, userStore)         // 4. order ต้องการ user ด้วย
+    orderHandler := order.NewHandler(orderSvc)
+
+    mux := http.NewServeMux()
+    userHandler.RegisterRoutes(mux)                             // 5. register routes
+    orderHandler.RegisterRoutes(mux)
+
+    srv := server.New(cfg.Addr(), chain(mux, logging, recovery)) // 6. middleware chain
+    srv.Start()                                                 // 7. start + graceful shutdown
+}
+```
+
+> **Java เทียบ:** `main.go` = `@SpringBootApplication` + `@Bean` methods รวมไว้ในที่เดียว
+
+**4. Middleware Chain**
+
+```go
+func chain(next http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
+    for i := len(middlewares) - 1; i >= 0; i-- {
+        next = middlewares[i](next)
+    }
+    return next
+}
+
+// ใช้: chain(mux, logging, recovery)
+// request → logging → recovery → actual handler
+```
+
+**5. Graceful Shutdown**
+
+```go
+go func() {
+    srv.Start()            // รัน server ใน goroutine
+}()
+
+quit := make(chan os.Signal, 1)
+signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+<-quit                     // รอ SIGINT (Ctrl+C)
+
+srv.Shutdown(ctx)          // รอ request ที่ค้างอยู่ให้จบก่อน
+```
+
 | | |
 |---|---|
 | **เหมาะกับ** | แอปขนาดกลาง, REST API หลาย resource, team 2-5 คน |
-| **ข้อดี** | แก้ feature หนึ่ง = แก้ใน folder เดียว, ทีมแบ่งงานตาม domain ได้ |
-| **ข้อเสีย** | ต้องคิด domain boundary ให้ดี, shared code ต้องแยกเป็น `internal/` |
-| **Idiomatic?** | ใช่ — นี่คือ Go style ที่แนะนำมากที่สุดสำหรับแอปขนาดกลาง |
+| **ข้อดี** | แก้ feature หนึ่ง = แก้ใน folder เดียว, swap store ได้, test ง่าย |
+| **ข้อเสีย** | ต้องคิด domain boundary ให้ดี, wiring code ใน main ยาวขึ้นเรื่อยๆ |
+| **Idiomatic?** | ใช่ — นี่คือ Go style ที่แนะนำมากที่สุด |
 
 > **ตัวอย่าง:** `examples/domain-driven/`
 
@@ -203,17 +347,21 @@ myapp/
 ```
 myapp/
   go.mod
-  main.go              ← wiring
+  main.go                    ← wiring: สร้าง deps layer by layer
+  config/
+    config.go                 ← อ่าน config จาก env vars
   model/
-    user.go            ← struct เท่านั้น
+    model.go                  ← struct definitions (เทียบ @Entity / DTO)
   repository/
-    user_repository.go ← data access (DB)
+    repository.go             ← interface + memory implementation (เทียบ @Repository)
   service/
-    user_service.go    ← business logic
+    service.go                ← business logic + validation (เทียบ @Service)
   handler/
-    user_handler.go    ← HTTP handler
+    handler.go                ← HTTP handlers (เทียบ @RestController)
   middleware/
-    logging.go         ← HTTP middleware
+    middleware.go              ← logging, recovery, chain
+  server/
+    server.go                 ← HTTP server wrapper + graceful shutdown
 ```
 
 ```java
@@ -222,16 +370,50 @@ myapp/
 //   service/     → @Service
 //   repository/  → @Repository / JpaRepository
 //   model/       → @Entity / DTO
+//   config/      → @Configuration
 ```
 
-| | |
-|---|---|
-| **เหมาะกับ** | คนที่มาจาก Spring Boot และอยากได้โครงสร้างคุ้นเคย, enterprise |
-| **ข้อดี** | เข้าใจง่ายถ้ามาจาก Java, แยก concern ชัดเจน |
-| **ข้อเสีย** | **ไม่ใช่ Idiomatic Go** — แก้ feature หนึ่ง = กระโดด 4-5 folder, overkill สำหรับแอปเล็ก |
-| **Idiomatic?** | ไม่ค่อย — ใช้ได้แต่ชาว Go ส่วนใหญ่ไม่แนะนำ |
+#### Wiring: main.go (Layer by Layer)
 
-> **ตัวอย่าง:** `examples/layered/`
+```go
+func main() {
+    cfg := config.Load()
+
+    // Layer 1: Repository (Data Access)
+    userRepo := repository.NewMemoryUserRepository()
+    orderRepo := repository.NewMemoryOrderRepository()
+
+    // Layer 2: Service (Business Logic) — รับ interface ไม่ใช่ concrete
+    userSvc := service.NewUserService(userRepo)
+    orderSvc := service.NewOrderService(orderRepo, userRepo)  // cross-domain dep
+
+    // Layer 3: Handler (HTTP) — รับ Service
+    userHandler := handler.NewUserHandler(userSvc)
+    orderHandler := handler.NewOrderHandler(orderSvc)
+
+    // Layer 4: Routes + Middleware
+    mux := http.NewServeMux()
+    userHandler.RegisterRoutes(mux)
+    orderHandler.RegisterRoutes(mux)
+
+    srv := server.New(cfg.Addr(), middleware.Chain(mux, middleware.Logging, middleware.Recovery))
+    srv.Start()  // + graceful shutdown
+}
+```
+
+> **Java เทียบ:** ทุกบรรทัดข้างบน = สิ่งที่ Spring IoC Container ทำให้ด้วย `@Autowired` อัตโนมัติ
+> ใน Go คุณเขียน "wiring" เอง — ยาวกว่าแต่ **อ่านรู้เรื่องทุกบรรทัด**
+
+#### ข้อสังเกต: เปรียบเทียบกับ Domain-Driven
+
+| | Layered (แบบนี้) | Domain-Driven (แบบที่แล้ว) |
+|---|---|---|
+| แก้ feature "user" | แก้ **4 folder**: model/ + repository/ + service/ + handler/ | แก้ **1 folder**: user/ |
+| เพิ่ม domain "payment" | ต้องแก้ **ทุก layer** | สร้าง **folder เดียว**: payment/ |
+| Dependency flow | `handler → service → repository → model` (เดียวกัน) | `handler → service → store` (เดียวกัน) |
+| DI pattern | constructor injection (เหมือนกัน) | constructor injection (เหมือนกัน) |
+
+> **สรุป:** Logic เหมือนกันทุกอย่าง ต่างแค่ว่าไฟล์อยู่ "รวมตาม domain" หรือ "แยกตาม layer"
 
 ### สรุป: ใช้แบบไหนดี?
 
@@ -247,19 +429,23 @@ myapp/
 ## รันตัวอย่าง
 
 ```bash
-# แบบ Flat
+# แบบ Flat (port 8081)
 go run ./lessons/12-project-layout/examples/flat/
 
-# แบบ Domain-Driven
+# แบบ Domain-Driven (port 8080) — แนะนำ!
 go run ./lessons/12-project-layout/examples/domain-driven/
 
-# แบบ Layered
+# แบบ Layered (port 8083)
 go run ./lessons/12-project-layout/examples/layered/
 
-# ทดสอบ (แต่ละอันรันคนละ port: 8081, 8082, 8083)
-curl http://localhost:8081/users
-curl http://localhost:8082/users
-curl http://localhost:8083/users
+# ทดสอบ Domain-Driven (real-world example)
+curl http://localhost:8080/users
+curl http://localhost:8080/users/1
+curl -X POST http://localhost:8080/users -d '{"name":"Alice","email":"alice@test.com"}'
+curl -X PUT http://localhost:8080/users/1 -d '{"name":"Updated","email":"new@test.com"}'
+curl -X DELETE http://localhost:8080/users/1
+curl -X POST http://localhost:8080/orders -d '{"user_id":1,"item":"Go book","qty":2}'
+curl http://localhost:8080/users/1/orders
 ```
 
 ## ไฟล์ในบทนี้
