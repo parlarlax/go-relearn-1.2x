@@ -2,7 +2,10 @@ module github.com/lax/go-relearn
 
 go 1.26.1
 
-require modernc.org/sqlite v1.50.0
+require (
+	github.com/NVIDIA/gontainer/v2 v2.4.1
+	modernc.org/sqlite v1.50.0
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
