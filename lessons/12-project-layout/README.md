@@ -139,6 +139,132 @@ go tool cover -html=cover.out # เปิด coverage report ใน browser
 
 > **Tip:** ใช้ `go help <command>` เพื่อดู help ของแต่ละคำสั่ง เช่น `go help test`
 
+---
+
+## เปรียบเทียบ 3 สไตล์ Project Structure
+
+ทั้ง 3 แบบทำงานเหมือนกัน (CRUD API) แต่จัดโครงสร้างต่างกัน — ดูโค้ดตัวอย่างได้ใน `examples/`
+
+### แบบที่ 1: Flat (ไฟล์เดียวหรือไม่กี่ไฟล์)
+
+```
+myapp/
+  go.mod
+  main.go          ← ทุกอย่างอยู่ในไฟล์เดียว: handler, store, middleware
+```
+
+```java
+// Java เทียบ: โยนทุกอย่างใน @RestController เดียว (Spring Boot pet project)
+```
+
+| | |
+|---|---|
+| **เหมาะกับ** | microservice เล็ก, CLI tool, PoC, hackathon |
+| **ข้อดี** | ง่าย อ่านไว ไม่ต้องกระโดดไฟล์ |
+| **ข้อเสีย** | ไม่ scale — พอเกิน ~500 บรรทัด จัดการยาก |
+| **Idiomatic?** | ใช่ — Go ชอบ "start small" |
+
+> **ตัวอย่าง:** `examples/flat/main.go`
+
+### แบบที่ 2: Domain-Driven (แบ่งตาม feature/domain)
+
+```
+myapp/
+  go.mod
+  main.go              ← wiring (เชื่อมทุก domain เข้าด้วยกัน)
+  user/
+    user.go            ← struct + constructor
+    handler.go         ← HTTP handler (เรียก store ตรงๆ)
+  order/
+    order.go
+    handler.go
+  internal/
+    db/
+      store.go         ← generic store (ใช้ร่วมกัน)
+```
+
+```java
+// Java เทียบ: แบ่งตาม feature package
+//   com.example.user/    → UserController, UserService, UserRepository
+//   com.example.order/   → OrderController, OrderService, OrderRepository
+```
+
+| | |
+|---|---|
+| **เหมาะกับ** | แอปขนาดกลาง, REST API หลาย resource, team 2-5 คน |
+| **ข้อดี** | แก้ feature หนึ่ง = แก้ใน folder เดียว, ทีมแบ่งงานตาม domain ได้ |
+| **ข้อเสีย** | ต้องคิด domain boundary ให้ดี, shared code ต้องแยกเป็น `internal/` |
+| **Idiomatic?** | ใช่ — นี่คือ Go style ที่แนะนำมากที่สุดสำหรับแอปขนาดกลาง |
+
+> **ตัวอย่าง:** `examples/domain-driven/`
+
+### แบบที่ 3: Layered (แบ่งตาม layer — แบบ Spring Boot)
+
+```
+myapp/
+  go.mod
+  main.go              ← wiring
+  model/
+    user.go            ← struct เท่านั้น
+  repository/
+    user_repository.go ← data access (DB)
+  service/
+    user_service.go    ← business logic
+  handler/
+    user_handler.go    ← HTTP handler
+  middleware/
+    logging.go         ← HTTP middleware
+```
+
+```java
+// Java Spring Boot — นี่คือสไตล์ที่คุณคุ้นเคย!
+//   controller/  → @RestController
+//   service/     → @Service
+//   repository/  → @Repository / JpaRepository
+//   model/       → @Entity / DTO
+```
+
+| | |
+|---|---|
+| **เหมาะกับ** | คนที่มาจาก Spring Boot และอยากได้โครงสร้างคุ้นเคย, enterprise |
+| **ข้อดี** | เข้าใจง่ายถ้ามาจาก Java, แยก concern ชัดเจน |
+| **ข้อเสีย** | **ไม่ใช่ Idiomatic Go** — แก้ feature หนึ่ง = กระโดด 4-5 folder, overkill สำหรับแอปเล็ก |
+| **Idiomatic?** | ไม่ค่อย — ใช้ได้แต่ชาว Go ส่วนใหญ่ไม่แนะนำ |
+
+> **ตัวอย่าง:** `examples/layered/`
+
+### สรุป: ใช้แบบไหนดี?
+
+| ขนาดโปรเจกต์ | แนะนำ | เหตุผล |
+|---|---|---|
+| เล็ก (< 1000 บรรทัด) | **Flat** | ไม่ต้องซับซ้อน |
+| กลาง (API หลาย resource) | **Domain-Driven** | แก้ทีละ feature สะดวก |
+| ใหญ่ / Enterprise / Team ใหญ่ | **Domain-Driven** + `internal/` | domain boundary ชัด + ซ่อน implementation |
+| ยังไม่รู้ | **Flat → Domain** | เริ่ม flat แล้ว refactor เมื่อซับซ้อน |
+
+> **กฎทอง:** เริ่มจาก flat เสมอ แล้วแยกเมื่อรู้สึกว่าไฟล์เดียวมันเยอะเกิน — ไม่ใช่แยกก่อนแล้วค่อยเขียน
+
+## รันตัวอย่าง
+
+```bash
+# แบบ Flat
+go run ./lessons/12-project-layout/examples/flat/
+
+# แบบ Domain-Driven
+go run ./lessons/12-project-layout/examples/domain-driven/
+
+# แบบ Layered
+go run ./lessons/12-project-layout/examples/layered/
+
+# ทดสอบ (แต่ละอันรันคนละ port: 8081, 8082, 8083)
+curl http://localhost:8081/users
+curl http://localhost:8082/users
+curl http://localhost:8083/users
+```
+
 ## ไฟล์ในบทนี้
 
-- `main.go` — ตัวอย่างการแบ่ง package และ import
+- `main.go` — ตัวอย่าง UserService แบบ simple
+- `examples/flat/` — Flat structure: ทุกอย่างใน main.go
+- `examples/domain-driven/` — Domain-Driven: user/, order/, internal/db/
+- `examples/layered/` — Layered: model/, repository/, service/, handler/, middleware/
