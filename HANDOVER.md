@@ -1,36 +1,36 @@
-# 🏁 Project Handoff / Progress Tracker
+# Project Handoff / Progress Tracker
 
-ไฟล์นี้ใช้บันทึกสถานะล่าสุดว่าทำถึงไหนแล้ว และต้อง "ไปต่อ" ที่จุดไหน เพื่อให้การกลับมาเขียนต่อทำได้ลื่นไหลที่สุด
+## Current Status
 
-## 📍 Current Status (สถานะปัจจุบัน)
+- **Last Active:** Phase 1 + Phase 2 สร้างตัวอย่างครบแล้ว
+- **Current Branch:** `main`
+- **Go Version:** 1.26.1
 
-- **Last Active:** [ใส่สถานะล่าสุด เช่น กำลังทดลองเรื่อง Iterators ใน Go 1.23]
-- **Current Branch:** `main` (หรือชื่อฟีเจอร์ที่ทำค้างไว้)
-- **Latest Milestone:** ติดตั้ง Go 1.26 และเซ็ตอัพโปรเจกต์พื้นฐานสำเร็จ
+## What's Working
 
-## 🏗 What's Working (สิ่งที่ทำเสร็จแล้ว)
+- [x] Setup `go.mod` และโครงสร้างโฟลเดอร์ (Idiomatic Go style)
+- [x] Phase 1.1: Interface & Methods (6 ตัวอย่าง)
+- [x] Phase 1.2: Concurrency Patterns (6 ตัวอย่าง)
+- [x] Phase 1.3: Generics (4 ตัวอย่าง)
+- [x] Phase 2.1: slog-demo (3 ตัวอย่าง)
+- [x] Phase 2.2: http-mux (Go 1.22+ new router)
+- [x] Phase 2.3: iterators-lab (basic + tree iterator)
+- [x] `go vet ./...` ผ่านหมด
 
-- [ ] Setup `go.mod` และโครงสร้างโฟลเดอร์
-- [ ] ทดสอบ `log/slog` เบื้องต้น
-- [ ] ลองใช้ `net/http` router ตัวใหม่ (v1.22+)
+## Next Steps
 
-## 🚧 Work in Progress (สิ่งที่ค้างอยู่)
+1. ลองรันแต่ละ experiment ด้วย `go run ./experiments/...`
+2. ศึกษา `unique` package (Go 1.23)
+3. ทดลอง PGO (Profile-Guided Optimization) ในเครื่อง local
+4. เพิ่ม unit tests ให้แต่ละ package ใน `basics/`
+5. ลองใช้ `slices` และ `maps` standard package (Go 1.21+)
 
-- [ ] กำลังแก้บัคในส่วนของ `custom iterator` ในโฟลเดอร์ `/experiments/iter`
-- [ ] ยังทำ Unit Test ของส่วน `Service` ไม่เสร็จ
+## Quick Tips
 
-## 📝 Next Steps (สิ่งที่ต้องทำต่อ)
+- ใช้ `go vet ./...` ตรวจสอบทุกครั้งก่อน commit
+- ดูตัวอย่าง Iterator ใน `experiments/iterators-lab/basic/`
+- http-mux ต้องรันแล้วใช้ curl ทดสอบ: `curl localhost:8080/users/42`
 
-1. ไปที่ไฟล์ `internal/handler/user_test.go` แล้วเขียน Test Case เพิ่ม
-2. ศึกษาเรื่อง **PGO (Profile-Guided Optimization)** ว่าจะลองรันในเครื่อง local อย่างไร
-3. อัปเดต `README.md` ในส่วนของ Roadmap เมื่อทำหัวข้อนั้นๆ จบ
+## Blockers
 
-## 💡 Quick Tips & Reminders
-
-- อย่าลืมใช้คำสั่ง `go mod tidy` ทุกครั้งหลังเพิ่ม package ใหม่
-- ดูตัวอย่างการเขียน Iterator ได้ใน [Go 1.23 Release Notes](https://go.dev)
-- ติดปัญหาตรงไหนให้โน้ตไว้ในส่วน **Blockers** ด้านล่าง
-
-## 🛑 Blockers (ปัญหาที่พบ)
-
-- (ตัวอย่าง) ยังไม่ค่อยเข้าใจเรื่อง `unique` package ว่าใช้จริงตอนไหนดี -> ต้องหาบทความอ่านเพิ่ม
+- (ยังไม่มี)
