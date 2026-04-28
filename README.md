@@ -1,72 +1,60 @@
-# Go Re-learning Lab (1.20 to 1.26) 🚀
+# Go Re-learning Lab — Zero to Hero (Java Spring Boot → Go 1.26)
 
-Repository สำหรับทบทวนความรู้ภาษา Go และอัปเดตฟีเจอร์ใหม่ๆ ตั้งแต่เวอร์ชัน 1.20 เป็นต้นไป
+Repository สำหรับเรียน Go ตั้งแต่ศูนย์ ออกแบบมาสำหรับคนที่เคยเขียน **Java / Spring Boot** มา
 
-## 🎯 Objectives
-
-- เคาะสนิม Syntax พื้นฐาน และ Concurrency (Goroutines/Channels)
-- ศึกษาฟีเจอร์ใหม่ที่สำคัญในแต่ละเวอร์ชัน (PGO, Iterators, Loop Semantics)
-- สร้างโปรเจกต์ขนาดเล็กเพื่อทดลองใช้งานจริง
-
-## 📁 Project Structure
+## โครงสร้าง
 
 ```
-cmd/basics/              — Entry point สำหรับรันตัวอย่าง Phase 1
-basics/
-  interfaces/            — Phase 1.1: Interface & Methods
-  concurrency/           — Phase 1.2: Concurrency Patterns
-  generics/              — Phase 1.3: Generics
-experiments/
-  slog-demo/             — Phase 2.1: log/slog structured logging
-    text-handler/        — TextHandler example
-    json-handler/        — JSONHandler + slog.Group example
-    custom-handler/      — Custom handler wrapper example
-  http-mux/              — Phase 2.2: Go 1.22+ new net/http router
-  iterators-lab/         — Phase 2.3: Go 1.23 range-over-func iterators
-    basic/               — Backward, Filter, Enumerate iterators
-    tree/                — BinaryTree iterator with iter.Seq
+lessons/
+  01-hello-go/       → Hello Go, fmt, go mod
+  02-variables/      → Variables, Types, Constants, Zero Values
+  03-functions/      → Multiple return, defer, init
+  04-struct-methods/ → Struct, Methods, Embedding (composition)
+  05-interfaces/     → Interface, Duck Typing, Type Switch, Nil Trap, new() expr (1.26)
+  06-error-handling/ → error pattern, custom error, wrap/unwrap, panic/recover, errors.AsType (1.26)
+  07-slices-maps/    → Slice, Map, Range, make, copy
+  08-pointers/       → Pointer basics, value vs reference
+  09-goroutines/     → Goroutine, Channel, WaitGroup, Select
+  10-context/        → Context cancel/timeout/value, Mutex
+  11-generics/       → Generic functions, constraints, generic struct, type aliases (1.24), self-ref (1.26)
+  12-project-layout/ → Package layout, Idiomatic Go structure
+  13-slog/           → Structured Logging (Go 1.21+), MultiHandler (1.26)
+  14-http-server/    → HTTP Server + Router (Go 1.22+)
+  15-iterators/      → Range-over-func Iterators (Go 1.23+)
+  16-testing/        → Unit Test, Table-Driven, Benchmark, B.Loop (1.24), synctest (1.25)
+  17-whats-new-124-126/ → weak, os.Root, AddCleanup, WaitGroup.Go, GC, goroutine leak
 ```
 
-## 📅 Learning Roadmap
-
-### Phase 1: The Basics (Refresher)
-
-- [x] Interface & Methods (`basics/interfaces/`)
-- [x] Concurrency Patterns — Select, Context, WaitGroup (`basics/concurrency/`)
-- [x] Generics (`basics/generics/`)
-
-### Phase 2: What's New since 1.20?
-
-- **Go 1.21:**
-  - `min`, `max`, `clear` built-in functions
-  - `log/slog` (Structured Logging)
-  - `slices` และ `maps` package มาตรฐาน
-- **Go 1.22:**
-  - Loop semantics change
-  - `net/http` routing ปรับปรุงใหม่ (`experiments/http-mux/`)
-- **Go 1.23:**
-  - **Iterators** (Range-over-func) (`experiments/iterators-lab/`)
-  - `unique` package
-- **Go 1.24 - 1.26:**
-  - Profile-Guided Optimization (PGO) improvements
-  - Generic Alias และ Performance ต่างๆ
-
-## 🏃 How to Run
+## วิธีรันแต่ละบท
 
 ```bash
-# Phase 1 — ผ่าน cmd entry point
-go run ./cmd/basics interfaces
+go run ./lessons/01-hello-go/
+go run ./lessons/02-variables/
+go run ./lessons/09-goroutines/
+# ... และอื่นๆ
 
-# Phase 2 — รันแต่ละ experiment ตรงๆ
-go run ./experiments/slog-demo/text-handler
-go run ./experiments/slog-demo/json-handler
-go run ./experiments/slog-demo/custom-handler
-go run ./experiments/http-mux
-go run ./experiments/iterators-lab/basic
-go run ./experiments/iterators-lab/tree
+# บท 14 (HTTP Server) ต้องทดสอบด้วย curl:
+go run ./lessons/14-http-server/
+curl http://localhost:8080/users
+
+# บท 16 (Testing):
+go test -v ./lessons/16-testing/
 ```
 
-## 🛠 Prerequisites
+## Version Notes
 
-- Go 1.26+ (ดาวน์โหลดได้ที่ [go.dev](https://go.dev/dl/))
-- VS Code + Go Extension
+| บท | ฟีเจอร์ | Go Version |
+|---|---|---|
+| 01-12 | พื้นฐานภาษา Go | 1.0+ |
+| 11 | Generics | **1.18+** |
+| 11 | Generic type aliases | **1.24+** |
+| 13 | `log/slog` structured logging | **1.21+** |
+| 14 | `net/http` method + path params | **1.22+** |
+| 15 | `range-over-func` iterators | **1.23+** |
+| 16 | `B.Loop`, `T.Context`, synctest | **1.24+** |
+| 17 | weak, os.Root, Swiss Tables, GC | **1.24-1.26** |
+
+## Prerequisites
+
+- Go 1.26+ (`go.dev/dl`)
+- (Optional) VS Code + Go Extension
