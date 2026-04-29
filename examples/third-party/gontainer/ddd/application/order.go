@@ -3,7 +3,7 @@ package application
 import (
 	"fmt"
 
-	"github.com/lax/go-relearn/examples/third-party/gontainer-ddd/domain"
+	"github.com/lax/go-relearn/examples/third-party/gontainer/ddd/domain"
 )
 
 type OrderService struct {

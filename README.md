@@ -94,8 +94,9 @@ go run ./examples/stdlib/database-sql/
 
 | Directory | Library | Description | Java Equivalent |
 |---|---|---|---|
-| `third-party/gontainer/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | DI container basics: factory, cleanup, Optional, Multiple, transient, annotations | Spring IoC Container |
-| `third-party/gontainer-ddd/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | Multi-package DDD: domain/application/infrastructure/interfaces layers | Spring Boot layered architecture |
+| `third-party/gontainer/flat/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | DI basics: factory, cleanup, Optional, Multiple, transient, annotations | Spring IoC Container |
+| `third-party/gontainer/layer/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | Layered architecture: handler → service → repository → model | Spring Boot layered |
+| `third-party/gontainer/ddd/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | Domain-Driven Design: domain/application/infrastructure/interfaces | Spring Boot DDD |
 
 ## Prerequisites
 
