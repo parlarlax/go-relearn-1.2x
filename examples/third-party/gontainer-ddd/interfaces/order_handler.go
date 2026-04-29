@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lax/go-relearn/examples/gontainer-ddd/application"
+	"github.com/lax/go-relearn/examples/third-party/gontainer-ddd/application"
 )
 
 type OrderHandler struct {

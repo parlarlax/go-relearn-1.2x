@@ -54,47 +54,48 @@ go test -v ./lessons/16-testing/
 | 16 | `B.Loop`, `T.Context`, synctest | **1.24+** |
 | 17 | weak, os.Root, Swiss Tables, GC | **1.24-1.26** |
 
-## Standard Library Examples
+## Examples
 
-โค้ดตัวอย่างแยก topic ละไฟล์ รันได้ทันที:
+```
+examples/
+├── stdlib/          ← Go standard library examples (one topic per directory)
+└── third-party/     ← Third-party library examples (gontainer DI, etc.)
+```
+
+### Standard Library
 
 ```bash
-go run ./examples/slog/
-go run ./examples/encoding-json/
-go run ./examples/slices-maps/
-go run ./examples/strings-bytes/
-go run ./examples/context/
-go run ./examples/sync/
-go run ./examples/time/
-go run ./examples/crypto/
-go run ./examples/iter/
-go run ./examples/os/
-go run ./examples/unique/
-go run ./examples/regexp/
-go run ./examples/encoding-xml/
-go run ./examples/testing/
-go run ./examples/net-http/
-go run ./examples/database-sql/
+go run ./examples/stdlib/slog/
+go run ./examples/stdlib/encoding-json/
+go run ./examples/stdlib/database-sql/
+# ... และอื่นๆ
 ```
 
 | Directory | สอนเรื่อง | Java Equivalent |
 |---|---|---|
-| `slog/` | Structured logging (Text, JSON, Groups, MultiHandler) | SLF4J + Logback |
-| `encoding-json/` | Marshal, Unmarshal, omitzero, RawMessage, custom JSON | Jackson ObjectMapper |
-| `slices-maps/` | Sort, Contains, Insert, Delete, BinarySearch, Concat | Stream API, Collections |
-| `strings-bytes/` | Split, Join, Builder, iterators (1.24+) | String utilities |
-| `context/` | WithTimeout, WithCancel, WithValue, Deadline | ThreadLocal / RequestScope |
-| `sync/` | Mutex, WaitGroup.Go, Once, Cond, Pool, Map | synchronized, CountDownLatch, ConcurrentHashMap |
-| `time/` | Format, Parse, Duration, Timer, Ticker, AfterFunc | java.time, ScheduledExecutor |
-| `crypto/` | crypto/rand, sha256, HKDF (1.24+) | java.security, javax.crypto |
-| `iter/` | Backward, Filter, Map, Take, BinaryTree iterator | Stream API |
-| `os/` | ReadFile, WriteFile, MkdirAll, env, Args, os.Root | java.nio.file |
-| `unique/` | Interning / canonicalization (1.23+) | String.intern() / ConcurrentHashMap cache |
-| `regexp/` | Compile, Find, groups, Replace, Split | java.util.regex |
-| `encoding-xml/` | Marshal, Unmarshal, XML tags, Encoder, CDATA | JAXB |
-| `testing/` | Table-driven, error testing, benchmark, B.Loop (1.24) | JUnit 5 |
-| `net-http/` | Server routes + client, path params, headers | Spring MVC + RestTemplate |
-| `database-sql/` | CRUD, transactions, prepared stmt, connection pool (pure-Go SQLite) | JdbcTemplate + HikariCP |
+| `stdlib/slog/` | Structured logging (Text, JSON, Groups, MultiHandler) | SLF4J + Logback |
+| `stdlib/encoding-json/` | Marshal, Unmarshal, omitzero, RawMessage, custom JSON | Jackson ObjectMapper |
+| `stdlib/slices-maps/` | Sort, Contains, Insert, Delete, BinarySearch, Concat | Stream API, Collections |
+| `stdlib/strings-bytes/` | Split, Join, Builder, iterators (1.24+) | String utilities |
+| `stdlib/context/` | WithTimeout, WithCancel, WithValue, Deadline | ThreadLocal / RequestScope |
+| `stdlib/sync/` | Mutex, WaitGroup.Go, Once, Cond, Pool, Map | synchronized, CountDownLatch, ConcurrentHashMap |
+| `stdlib/time/` | Format, Parse, Duration, Timer, Ticker, AfterFunc | java.time, ScheduledExecutor |
+| `stdlib/crypto/` | crypto/rand, sha256, HKDF (1.24+) | java.security, javax.crypto |
+| `stdlib/iter/` | Backward, Filter, Map, Take, BinaryTree iterator | Stream API |
+| `stdlib/os/` | ReadFile, WriteFile, MkdirAll, env, Args, os.Root | java.nio.file |
+| `stdlib/unique/` | Interning / canonicalization (1.23+) | String.intern() / ConcurrentHashMap cache |
+| `stdlib/regexp/` | Compile, Find, groups, Replace, Split | java.util.regex |
+| `stdlib/encoding-xml/` | Marshal, Unmarshal, XML tags, Encoder, CDATA | JAXB |
+| `stdlib/testing/` | Table-driven, error testing, benchmark, B.Loop (1.24) | JUnit 5 |
+| `stdlib/net-http/` | Server routes + client, path params, headers | Spring MVC + RestTemplate |
+| `stdlib/database-sql/` | CRUD, transactions, prepared stmt, connection pool (pure-Go SQLite) | JdbcTemplate + HikariCP |
+
+### Third-Party Libraries
+
+| Directory | Library | Description | Java Equivalent |
+|---|---|---|---|
+| `third-party/gontainer/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | DI container basics: factory, cleanup, Optional, Multiple, transient, annotations | Spring IoC Container |
+| `third-party/gontainer-ddd/` | [NVIDIA/gontainer](https://github.com/NVIDIA/gontainer) v2 | Multi-package DDD: domain/application/infrastructure/interfaces layers | Spring Boot layered architecture |
 
 ## Prerequisites
 

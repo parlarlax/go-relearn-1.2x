@@ -39,9 +39,9 @@ import (
 
 	"github.com/NVIDIA/gontainer/v2"
 
-	"github.com/lax/go-relearn/examples/gontainer-ddd/application"
-	"github.com/lax/go-relearn/examples/gontainer-ddd/infrastructure"
-	"github.com/lax/go-relearn/examples/gontainer-ddd/interfaces"
+	"github.com/lax/go-relearn/examples/third-party/gontainer-ddd/application"
+	"github.com/lax/go-relearn/examples/third-party/gontainer-ddd/infrastructure"
+	"github.com/lax/go-relearn/examples/third-party/gontainer-ddd/interfaces"
 )
 
 func main() {
